@@ -10,85 +10,103 @@
 **Dataset:** OpenAQ – Global Air Quality (PM2.5, PM10, NO2, O3, CO) for Mexico.
 
 ### **Real-world Issue**  
-La calidad del aire es un problema crítico tanto social como ambiental, ya que la exposición prolongada a contaminantes como PM2.5, PM10 o NO2 incrementa enfermedades respiratorias y cardiovasculares, afectando especialmente a comunidades urbanas vulnerables. Analizar datos históricos permite identificar patrones de contaminación, zonas críticas y variaciones estacionales que ayudan a mejorar estrategias de salud pública, movilidad y alertas ambientales.
+La calidad del aire es un problema crítico tanto social como ambiental, ya que la exposición prolongada a contaminantes como PM2.5, PM10 o NO2 incrementa enfermedades respiratorias y cardiovasculares, afectando especialmente a comunidades urbanas vulnerables.
+
+Analizar datos históricos permite identificar patrones de contaminación, zonas críticas y variaciones estacionales que mejoran estrategias de salud pública y movilidad.
 
 ### **Who Benefits**  
-Gobiernos locales, hospitales, organizaciones ambientales y la ciudadanía pueden utilizar estos insights para diseñar políticas públicas, emitir alertas oportunas, regular el tráfico y priorizar intervenciones en zonas afectadas.
+Gobiernos locales, hospitales, organizaciones ambientales y ciudadanos que requieren monitorear zonas críticas, emitir alertas o diseñar políticas públicas.
 
 ### **Why ELT Is Appropriate**  
-Los datos de OpenAQ crecen continuamente, por lo que es necesario conservar la capa cruda (`raw`) intacta. El enfoque ELT carga primero los datos sin modificar y luego ejecuta transformaciones en una segunda capa (`analytics`), permitiendo reprocesamiento, auditoría y flexibilidad conforme evolucionen las reglas de negocio.
+El dataset crece continuamente, por lo que es necesario conservar la capa cruda (`raw`) intacta.  
+ELT permite:
+- Guardar siempre los datos sin modificar  
+- Aplicar transformaciones posteriores (analytics)  
+- Reprocesar cuando cambien reglas de negocio  
 
 ---
 
 ## ⚙ Phase 2 — Airflow ELT Pipeline (Full Implementation)
 
-Este proyecto implementa una arquitectura **ELT real** usando Apache Airflow:
+Este proyecto implementa una arquitectura **ELT real** usando Apache Airflow.
 
-### 1. **E — Extract**
-- El DAG llama a la API pública de OpenAQ.
-- Los datos se descargan tal como vienen.
-- No se aplica ninguna limpieza en esta etapa.
+---
 
-### 2. **L — Load (Raw Layer)**
-Los datos crudos se guardan exactamente como llegan en:
+### 1️⃣ Extract (E)
+
+- El DAG llama la API de OpenAQ  
+- Descarga datos sin limpiar  
+- Guarda el archivo crudo directamente en `/data/raw/`
+
+---
+
+### 2️⃣ Load (L)
+
+Los datos crudos se guardan como:
 
 data/raw/air_quality_raw_<timestamp>.csv
 
-Esta capa permanece SIEMPRE intacta.
+👉 *La capa RAW nunca se modifica.*
 
-### 3. **T — Transform (Analytics Layer)**
-Una segunda tarea transforma el último archivo raw:
+---
+
+### 3️⃣ Transform (T)
+
+Una segunda tarea procesa el archivo RAW más reciente:
 
 Incluye:
 - Limpieza de valores faltantes  
 - Corrección de tipos  
-- Creación de nuevas columnas (e.g. `hour`)  
-- Agregaciones por contaminante  
-- Exportación a:
-
+- Creación de columna `hour`  
+- Promedio por contaminante  
+- Guardado en:
 data/analytics/air_quality_analytics.csv
 
 
+---
 
-### DAG Principal:
-dags/air_quality_elt.py
+### 📁 Directorios
 
+data/raw/ → RAW layer
+data/analytics/ → Analytics layer
+dags/ → Airflow DAGs
+dashboard/ → Notebook del dashboard
+docs/ → Imágenes (dashboard.png)
 
-### Directorios de Datos:
-- `data/raw/` → Datos crudos (RAW)
-- `data/analytics/` → Datos transformados (ANALYTICS)
-
-### Scheduling
-Configurado como:
-@daily
-
-Simula cargas automáticas de datos cada día.
-
-### Error Handling
-- Retries (`retries=2`)
-- Logging de errores
-- Uso de `try/except` en el proceso de transformación
-
-### Scaling Feature (Requerido por la rúbrica)
-- Separación RAW → ANALYTICS  
-- Pipeline preparado para cargas incrementales  
-- Transformaciones desacopladas del raw
 
 ---
 
-## 📊 Phase 3 — Dashboard Using the Transformed Analytics Table
+### 📡 Scheduling
 
-El dashboard fue creado usando Plotly + pandas en:
+@daily
+Simula cargas automáticas de datos cada día.
+
+---
+
+### ⚠ Error Handling
+
+- Retries (`retries=2`)
+- Logging de errores
+- try/except en transformación
+
+---
+
+### 🚀 Scaling Feature
+
+- RAW → ANALYTICS totalmente separado  
+- Pipeline preparado para cargas incrementales  
+- Transformaciones desacopladas  
+
+---
+
+## 📊 Phase 3 — Dashboard Using the Analytics Table
+
+El dashboard está en:
 dashboard/dashboard_air_quality.ipynb
 
-
-El dashboard **solo utiliza la capa analytics**, cumpliendo el requisito ELT:
-
 ```python
+from pathlib import Path
+import pandas as pd
+
 data_path = Path("data/analytics/air_quality_analytics.csv")
 df = pd.read_csv(data_path)
-
-### Dashboard Preview
-
-![Dashboard Preview](docs/dashboard.png)
-

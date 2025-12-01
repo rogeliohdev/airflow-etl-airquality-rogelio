@@ -104,9 +104,6 @@ Simula cargas automáticas de datos cada día.
 El dashboard está en:
 dashboard/dashboard_air_quality.ipynb
 
-```python
-from pathlib import Path
-import pandas as pd
 
-data_path = Path("data/analytics/air_quality_analytics.csv")
-df = pd.read_csv(data_path)
+![](screenshots/screenshot1.png)
+![](screenshots/screenshot2.png)

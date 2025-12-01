@@ -1,0 +1,6 @@
+parameter,avg_value,city
+pm25,23.5,Ciudad A
+pm10,35.2,Ciudad B
+no2,18.1,Ciudad C
+o3,12.4,Ciudad D
+co,0.9,Ciudad E

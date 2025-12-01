@@ -88,3 +88,7 @@ El dashboard **solo utiliza la capa analytics**, cumpliendo el requisito ELT:
 data_path = Path("data/analytics/air_quality_analytics.csv")
 df = pd.read_csv(data_path)
 
+### Dashboard Preview
+
+![Dashboard Preview](docs/dashboard.png)
+
